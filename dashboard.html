@@ -6,7 +6,6 @@
   <title>📊 แดชบอร์ด | Ramen Staff</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
-  <!-- เพิ่ม: CSS toast แจ้งเตือน -->
   <style>
     .order-toast {
       position: fixed;
@@ -30,10 +29,70 @@
       transform: translateX(-50%) translateY(0);
       opacity: 1;
     }
+    /* เพิ่ม: popup เริ่มรับออเดอร์ */
+    #start-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+    #start-overlay.hidden { display: none; }
+    #start-box {
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 24px;
+      padding: 40px 36px;
+      text-align: center;
+      max-width: 340px;
+      width: 90%;
+    }
+    #start-box .start-emoji { font-size: 56px; margin-bottom: 16px; }
+    #start-box h2 {
+      font-family: 'Black Han Sans', sans-serif;
+      font-size: 22px;
+      color: #fff;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+    #start-box p {
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 14px;
+      color: #888;
+      margin-bottom: 28px;
+      line-height: 1.7;
+    }
+    #btn-start {
+      width: 100%;
+      background: linear-gradient(135deg, #E84545, #ff6b35);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 17px;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
   </style>
 </head>
 <body class="dash-page">
   <div id="app">
+
+    <!-- เพิ่ม: popup unlock เสียง iPhone -->
+    <div id="start-overlay">
+      <div id="start-box">
+        <div class="start-emoji">🍜</div>
+        <h2>STAFF PANEL</h2>
+        <p>กดปุ่มด้านล่างเพื่อเริ่มรับออเดอร์<br>และเปิดใช้งานเสียงแจ้งเตือน</p>
+        <button id="btn-start" onclick="startDashboard()">🔔 เริ่มรับออเดอร์</button>
+      </div>
+    </div>
+
     <header class="dash-header">
       <div class="header-content">
         <div class="logo-area">
@@ -46,11 +105,11 @@
         <div class="header-tabs">
           <button class="htab active" id="htab-orders" onclick="switchTab('orders')">📋 ออเดอร์</button>
           <button class="htab" id="htab-stats" onclick="switchTab('stats')">📈 สถิติ</button>
-          <!-- เพิ่ม: ปุ่มเปิด/ปิดเสียง -->
           <button class="htab" id="btn-sound" onclick="toggleSound()">🔔 เสียงเปิด</button>
         </div>
       </div>
     </header>
+
     <!-- TAB: ORDERS -->
     <div id="tab-orders" class="tab-content active">
       <div class="dash-body">
@@ -76,13 +135,32 @@
         <div id="orders-list" class="orders-list"></div>
       </div>
     </div>
+
     <!-- TAB: STATS -->
     <div id="tab-stats" class="tab-content">
       <div class="stats-body" id="stats-body"></div>
     </div>
+
   </div>
   <script src="data.js"></script>
   <script src="supabase.js"></script>
   <script src="dashboard.js"></script>
+  <!-- เพิ่ม: unlock เสียง iPhone -->
+  <script>
+    function startDashboard() {
+      // unlock audio context สำหรับ iPhone
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const buf = ctx.createBuffer(1, 1, 22050);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.connect(ctx.destination);
+        src.start(0);
+        ctx.resume();
+      } catch(e) {}
+      // ซ่อน overlay
+      document.getElementById('start-overlay').classList.add('hidden');
+    }
+  </script>
 </body>
 </html>
