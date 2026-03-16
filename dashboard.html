@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 แดชบอร์ด | Ramen Staff</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+</head>
+<body class="dash-page">
+  <div id="app">
+
+    <header class="dash-header">
+      <div class="header-content">
+        <div class="logo-area">
+          <span class="logo-kr">대시</span>
+          <div class="logo-text">
+            <h1>STAFF PANEL</h1>
+            <p>ระบบจัดการออเดอร์</p>
+          </div>
+        </div>
+        <div class="header-tabs">
+          <button class="htab active" id="htab-orders" onclick="switchTab('orders')">📋 ออเดอร์</button>
+          <button class="htab" id="htab-stats" onclick="switchTab('stats')">📈 สถิติ</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- TAB: ORDERS -->
+    <div id="tab-orders" class="tab-content active">
+      <div class="dash-body">
+        <div id="dash-summary" class="dash-summary"></div>
+
+        <div class="orders-toolbar">
+          <h2>
+            ออเดอร์วันนี้ <span id="order-count" class="badge">0</span>
+            <span class="last-refresh" id="last-refresh"></span>
+          </h2>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:8px;">
+            <div class="filter-tabs">
+              <button class="tab active" onclick="filterOrders('all',this)">ทั้งหมด</button>
+              <button class="tab" onclick="filterOrders('pending',this)">⏳ รอทำ</button>
+              <button class="tab" onclick="filterOrders('done',this)">✅ เสร็จแล้ว</button>
+            </div>
+            <button
+              onclick="deleteAllOrders()"
+              style="background:transparent;color:#E84545;border:2px solid #E84545;border-radius:8px;padding:8px 16px;font-size:14px;font-family:'Noto Sans Thai',sans-serif;font-weight:700;cursor:pointer;white-space:nowrap;">
+              🗑 ลบทั้งหมด
+            </button>
+          </div>
+        </div>
+
+        <div id="orders-list" class="orders-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: STATS -->
+    <div id="tab-stats" class="tab-content">
+      <div class="stats-body" id="stats-body"></div>
+    </div>
+
+  </div>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

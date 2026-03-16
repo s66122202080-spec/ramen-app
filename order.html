@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🍜 สั่งรามยอน</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+</head>
+<body class="order-page">
+  <div id="app">
+
+    <header class="order-header">
+      <div class="header-content">
+        <div class="logo-area">
+          <span class="logo-kr">라면</span>
+          <div class="logo-text">
+            <h1>RAMYON</h1>
+            <p>Korean Ramen Order</p>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="order-body">
+
+      <!-- Step 1 -->
+      <div class="step-card">
+        <div class="step-label">STEP 01</div>
+        <h2 class="step-title">ข้อมูลลูกค้า</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>ชื่อ / Name</label>
+            <input type="text" id="customer-name" placeholder="ชื่อของคุณ..." maxlength="20" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>โต๊ะที่ / Table No.</label>
+            <select id="table-select">
+              <option value="">-- เลือกโต๊ะ --</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="step-card">
+        <div class="step-label">STEP 02</div>
+        <h2 class="step-title">เลือกเมนู</h2>
+        <div class="menu-grid" id="menu-grid"></div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="step-card">
+        <div class="step-label">STEP 03</div>
+        <h2 class="step-title">ตะกร้า / Cart</h2>
+        <div id="cart-items">
+          <div class="empty-cart">🛒 ยังไม่ได้เลือกเมนู</div>
+        </div>
+        <button class="btn-submit" id="btn-submit" onclick="submitOrder()" disabled>
+          🔥 ส่งออเดอร์
+        </button>
+      </div>
+
+    </div>
+
+    <!-- MODAL: SUCCESS -->
+    <div id="modal-success" class="modal hidden">
+      <div class="modal-overlay"></div>
+      <div class="modal-box">
+        <div class="modal-emoji">🎉</div>
+        <h2>ส่งออเดอร์แล้ว!</h2>
+        <div id="modal-detail"></div>
+        <div class="queue-display">
+          <span>คิวของคุณ</span>
+          <span id="modal-queue" class="queue-num">—</span>
+        </div>
+        <p class="queue-hint">รอเรียกชื่อจากพนักงานได้เลยครับ/ค่ะ 😊</p>
+        <button class="btn-submit" onclick="closeModal()">✓ รับทราบ / สั่งใหม่</button>
+      </div>
+    </div>
+
+    <!-- MODAL: RAMEN INFO -->
+    <div id="modal-info" class="modal hidden">
+      <div class="modal-overlay" onclick="closeInfoModal()"></div>
+      <div class="modal-box modal-info-box">
+        <button class="close-btn" onclick="closeInfoModal()">✕</button>
+        <div id="modal-info-content"></div>
+      </div>
+    </div>
+
+  </div>
+  <script src="data.js"></script>
+  <script src="supabase.js"></script>
+  <script src="order.js"></script>
+</body>
+</html>
