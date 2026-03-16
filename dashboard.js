@@ -1,14 +1,34 @@
 // ===== STATE =====
 let currentFilter = 'all';
 let refreshTimer = null;
-let lastOrderCount = -1;  // เพิ่ม: ติดตามจำนวนออเดอร์ล่าสุด
-let soundEnabled = true;  // เพิ่ม: สถานะเสียง
+let lastOrderCount = -1;
+let soundEnabled = true;
+let activeAudioCtx = null;   // เพิ่ม: เก็บ context เสียงที่กำลังดัง
+let soundTimeouts = [];       // เพิ่ม: เก็บ timeout ที่กำลังรอ
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   startAutoRefresh();
+
+  // เพิ่ม: แตะ/คลิกที่ไหนก็ได้ → หยุดเสียงและสั่น
+  document.addEventListener('touchstart', stopAlerts, { passive: true });
+  document.addEventListener('click', stopAlerts);
 });
+
+// ===== เพิ่ม: หยุดเสียงและสั่นทันที =====
+function stopAlerts() {
+  // หยุด timeout ที่รออยู่ทั้งหมด
+  soundTimeouts.forEach(t => clearTimeout(t));
+  soundTimeouts = [];
+  // หยุดเสียง
+  if (activeAudioCtx) {
+    try { activeAudioCtx.close(); } catch(e) {}
+    activeAudioCtx = null;
+  }
+  // หยุดสั่น
+  if (navigator.vibrate) navigator.vibrate(0);
+}
 
 // ===== TAB SWITCHING =====
 function switchTab(tab) {
@@ -27,11 +47,18 @@ async function renderDashboard() {
   // เพิ่ม: เช็คออเดอร์ใหม่
   if (lastOrderCount >= 0 && orders.length > lastOrderCount) {
     const newCount = orders.length - lastOrderCount;
-    // เล่นเสียง 1 ครั้งต่อ 1 ออเดอร์
+    // เล่นเสียง + สั่น 1 ครั้งต่อ 1 ออเดอร์
+    stopAlerts(); // หยุดเสียงเก่าก่อน
     for (let i = 0; i < newCount; i++) {
-      setTimeout(() => {
-        if (soundEnabled) playNotificationSound();
+      const t = setTimeout(() => {
+        if (soundEnabled) {
+          playNotificationSound();
+          if (navigator.vibrate) {
+            navigator.vibrate([500,200,500,200,500,200,500,200,500,200,500,200,500]);
+          }
+        }
       }, i * 900);
+      soundTimeouts.push(t);
     }
     showToast(`🔔 มีออเดอร์ใหม่ ${newCount} รายการ!`);
   }
@@ -264,49 +291,63 @@ function formatDateKey(key) {
 function playNotificationSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    activeAudioCtx = ctx; // เก็บไว้เพื่อหยุดได้
     const now = ctx.currentTime;
 
-    // เสียงกลองโหด
-    const bufferSize = ctx.sampleRate * 0.3;
-    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
-    }
-    const noise = ctx.createBufferSource();
-    noise.buffer = buffer;
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(1.2, now);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    noise.connect(noiseGain);
-    noiseGain.connect(ctx.destination);
-    noise.start(now);
+    // compressor ทำให้เสียงดังและชัดขึ้นมาก
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.value = -10;
+    compressor.knee.value = 0;
+    compressor.ratio.value = 20;
+    compressor.attack.value = 0;
+    compressor.release.value = 0.1;
+    compressor.connect(ctx.destination);
 
-    // เสียงต่ำหนัก
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = 'sawtooth';
-    osc1.frequency.setValueAtTime(180, now);
-    osc1.frequency.exponentialRampToValueAtTime(60, now + 0.25);
-    gain1.gain.setValueAtTime(1.5, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.3);
+    // ดังซ้ำทุก 0.8 วินาที รวม 7 วินาที = ~8 ครั้ง
+    const times = [0, 0.8, 1.6, 2.4, 3.2, 4.0, 4.8, 5.6, 6.4];
+    times.forEach(t => {
+      // เสียงกลองโหด
+      const bufferSize = ctx.sampleRate * 0.4;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(3.0, now + t);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + t + 0.4);
+      noise.connect(noiseGain);
+      noiseGain.connect(compressor);
+      noise.start(now + t);
 
-    // เสียงเตือน ping สูง
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = 'square';
-    osc2.frequency.setValueAtTime(1400, now + 0.05);
-    osc2.frequency.exponentialRampToValueAtTime(900, now + 0.2);
-    gain2.gain.setValueAtTime(0.8, now + 0.05);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(now + 0.05);
-    osc2.stop(now + 0.25);
+      // เสียงต่ำหนัก
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(220, now + t);
+      osc1.frequency.exponentialRampToValueAtTime(55, now + t + 0.35);
+      gain1.gain.setValueAtTime(3.0, now + t);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + t + 0.4);
+      osc1.connect(gain1);
+      gain1.connect(compressor);
+      osc1.start(now + t);
+      osc1.stop(now + t + 0.4);
+
+      // เสียง ping แหลม
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'square';
+      osc2.frequency.setValueAtTime(1800, now + t + 0.05);
+      osc2.frequency.exponentialRampToValueAtTime(800, now + t + 0.3);
+      gain2.gain.setValueAtTime(2.5, now + t + 0.05);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + t + 0.35);
+      osc2.connect(gain2);
+      gain2.connect(compressor);
+      osc2.start(now + t + 0.05);
+      osc2.stop(now + t + 0.35);
+    });
 
   } catch(e) {}
 }
