@@ -27,7 +27,12 @@ async function renderDashboard() {
   // เพิ่ม: เช็คออเดอร์ใหม่
   if (lastOrderCount >= 0 && orders.length > lastOrderCount) {
     const newCount = orders.length - lastOrderCount;
-    if (soundEnabled) playNotificationSound();
+    // เล่นเสียง 1 ครั้งต่อ 1 ออเดอร์
+    for (let i = 0; i < newCount; i++) {
+      setTimeout(() => {
+        if (soundEnabled) playNotificationSound();
+      }, i * 900);
+    }
     showToast(`🔔 มีออเดอร์ใหม่ ${newCount} รายการ!`);
   }
   lastOrderCount = orders.length;
@@ -259,18 +264,50 @@ function formatDateKey(key) {
 function playNotificationSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [0, 0.25, 0.5].forEach((time, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.frequency.value = [880, 1100, 880][i];
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.4, ctx.currentTime + time);
-      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + 0.3);
-      osc.start(ctx.currentTime + time);
-      osc.stop(ctx.currentTime + time + 0.35);
-    });
+    const now = ctx.currentTime;
+
+    // เสียงกลองโหด
+    const bufferSize = ctx.sampleRate * 0.3;
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(1.2, now);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    noise.connect(noiseGain);
+    noiseGain.connect(ctx.destination);
+    noise.start(now);
+
+    // เสียงต่ำหนัก
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sawtooth';
+    osc1.frequency.setValueAtTime(180, now);
+    osc1.frequency.exponentialRampToValueAtTime(60, now + 0.25);
+    gain1.gain.setValueAtTime(1.5, now);
+    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start(now);
+    osc1.stop(now + 0.3);
+
+    // เสียงเตือน ping สูง
+    const osc2 = ctx.createOscillator();
+    const gain2 = ctx.createGain();
+    osc2.type = 'square';
+    osc2.frequency.setValueAtTime(1400, now + 0.05);
+    osc2.frequency.exponentialRampToValueAtTime(900, now + 0.2);
+    gain2.gain.setValueAtTime(0.8, now + 0.05);
+    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+    osc2.connect(gain2);
+    gain2.connect(ctx.destination);
+    osc2.start(now + 0.05);
+    osc2.stop(now + 0.25);
+
   } catch(e) {}
 }
 
