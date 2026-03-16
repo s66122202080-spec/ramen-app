@@ -6,10 +6,34 @@
   <title>📊 แดชบอร์ด | Ramen Staff</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <!-- เพิ่ม: CSS toast แจ้งเตือน -->
+  <style>
+    .order-toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-80px);
+      background: linear-gradient(135deg, #E84545, #ff6b35);
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 40px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Noto Sans Thai', sans-serif;
+      box-shadow: 0 8px 32px rgba(232,69,69,0.5);
+      z-index: 9999;
+      transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s;
+      opacity: 0;
+      white-space: nowrap;
+    }
+    .order-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+  </style>
 </head>
 <body class="dash-page">
   <div id="app">
-
     <header class="dash-header">
       <div class="header-content">
         <div class="logo-area">
@@ -22,15 +46,15 @@
         <div class="header-tabs">
           <button class="htab active" id="htab-orders" onclick="switchTab('orders')">📋 ออเดอร์</button>
           <button class="htab" id="htab-stats" onclick="switchTab('stats')">📈 สถิติ</button>
+          <!-- เพิ่ม: ปุ่มเปิด/ปิดเสียง -->
+          <button class="htab" id="btn-sound" onclick="toggleSound()">🔔 เสียงเปิด</button>
         </div>
       </div>
     </header>
-
     <!-- TAB: ORDERS -->
     <div id="tab-orders" class="tab-content active">
       <div class="dash-body">
         <div id="dash-summary" class="dash-summary"></div>
-
         <div class="orders-toolbar">
           <h2>
             ออเดอร์วันนี้ <span id="order-count" class="badge">0</span>
@@ -49,16 +73,13 @@
             </button>
           </div>
         </div>
-
         <div id="orders-list" class="orders-list"></div>
       </div>
     </div>
-
     <!-- TAB: STATS -->
     <div id="tab-stats" class="tab-content">
       <div class="stats-body" id="stats-body"></div>
     </div>
-
   </div>
   <script src="data.js"></script>
   <script src="supabase.js"></script>
