@@ -1,6 +1,8 @@
 // ===== STATE =====
 let currentFilter = 'all';
 let refreshTimer = null;
+let lastOrderCount = -1;  // เพิ่ม: ติดตามจำนวนออเดอร์ล่าสุด
+let soundEnabled = true;  // เพิ่ม: สถานะเสียง
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,6 +23,15 @@ function switchTab(tab) {
 // ===== DASHBOARD =====
 async function renderDashboard() {
   const orders = await dbGetOrders();
+
+  // เพิ่ม: เช็คออเดอร์ใหม่
+  if (lastOrderCount >= 0 && orders.length > lastOrderCount) {
+    const newCount = orders.length - lastOrderCount;
+    if (soundEnabled) playNotificationSound();
+    showToast(`🔔 มีออเดอร์ใหม่ ${newCount} รายการ!`);
+  }
+  lastOrderCount = orders.length;
+
   document.getElementById('order-count').textContent = orders.length;
   renderSummary(orders);
   renderOrdersList(orders, currentFilter);
@@ -83,7 +94,7 @@ function renderOrdersList(orders, filter) {
 
     const itemsHtml = items.map(item => `
       <div class="order-item ${item.status}">
-        <span class="oi-name">${item.emoji} ${item.name} × ${item.qty}</span>
+        <span class="oi-name">${item.emoji} ${item.name} x ${item.qty}</span>
         <button class="item-toggle" onclick="toggleItem(${order.id},'${item.id}')">
           ${item.status === 'pending' ? '⏳ รอ' : '✅ เสร็จ'}
         </button>
@@ -162,7 +173,6 @@ async function renderStats() {
     return;
   }
 
-  // group by date
   const grouped = {};
   all.forEach(o => {
     if (!grouped[o.date]) grouped[o.date] = [];
@@ -243,4 +253,46 @@ function formatDateKey(key) {
   return key === getTodayKey()
     ? `📅 วันนี้ (${d} ${months[parseInt(m)]} ${parseInt(y)+543})`
     : `📅 ${d} ${months[parseInt(m)]} ${parseInt(y)+543}`;
+}
+
+// ===== เพิ่ม: เสียงแจ้งเตือน =====
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.25, 0.5].forEach((time, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = [880, 1100, 880][i];
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.4, ctx.currentTime + time);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + time + 0.3);
+      osc.start(ctx.currentTime + time);
+      osc.stop(ctx.currentTime + time + 0.35);
+    });
+  } catch(e) {}
+}
+
+// ===== เพิ่ม: toast แจ้งเตือน =====
+function showToast(msg) {
+  const existing = document.getElementById('order-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'order-toast';
+  toast.className = 'order-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 10);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 3500);
+}
+
+// ===== เพิ่ม: toggle เสียง =====
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = document.getElementById('btn-sound');
+  if (btn) btn.textContent = soundEnabled ? '🔔 เสียงเปิด' : '🔕 เสียงปิด';
 }
