@@ -57,7 +57,7 @@ const RAMEN_MENU = [
     tags: ['เผ็ดสุด!', 'ร้อนแรง', 'ท้าทาย'],
     color: '#E67E22',
     emoji: '🌶️',
-    image: 'https://s66122202080-spec.github.io/ramen-app/yeol.jpg',
+    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/yon.jpg?raw=true',
     imageFallback: 'https://s66122202080-spec.github.io/ramen-app/yeol.jpg'
   },
   {
