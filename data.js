@@ -12,8 +12,8 @@ const RAMEN_MENU = [
     tags: ['เผ็ดมาก', 'ไก่ย่าง', 'ยอดนิยม'],
     color: '#E84545',
     emoji: '🔥',
-    image: 'https://s66122202080-spec.github.io/ramen-app/samyang.jpg',
-    imageFallback: 'https://s66122202080-spec.github.io/ramen-app/samyang.jpg'
+    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/samyang.jpg?raw=true',
+    imageFallback: 'https://github.com/s66122202080-spec/ramen-app/blob/main/samyang.jpg?raw=true'
   },
   {
     id: 'jjajang',
