@@ -27,7 +27,7 @@ const RAMEN_MENU = [
     tags: ['ไม่เผ็ด', 'ซอสถั่วดำ', 'มันนัว'],
     color: '#3D2B1F',
     emoji: '⚫',
-    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/jajang.jpg?raw=true"style="width:120px; height:90px;",
+    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/jajang.jpg?raw=true'"style="width:120px; height:90px;",
     imageFallback: 'https://s66122202080-spec.github.io/ramen-app/jajang.jpg'
   },
   {
