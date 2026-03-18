@@ -87,8 +87,8 @@ const RAMEN_MENU = [
     tags: ['กิมจิ', 'เปรี้ยวเผ็ด', 'เกาหลีแท้'],
     color: '#8E44AD',
     emoji: '🥬',
-    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/kimchi.jpg?raw=true',
-    imageFallback: 'https://github.com/s66122202080-spec/ramen-app/blob/main/kimchi.jpg?raw=true'
+    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/kimchi2.jpg?raw=true',
+    imageFallback: 'https://github.com/s66122202080-spec/ramen-app/blob/main/kimchi2.jpg?raw=true'
   }
 ];
 
