@@ -62,7 +62,7 @@ async function renderDashboard() {
     }
     showToast(`🔔 มีออเดอร์ใหม่ ${newCount} รายการ!`);
   }
-  lastOrderCount = orders.length;
+  lastOrderCount = orders.shot;
 
   document.getElementById('order-count').textContent = orders.length;
   renderSummary(orders);
