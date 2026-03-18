@@ -72,8 +72,8 @@ const RAMEN_MENU = [
     tags: ['ไม่เผ็ด', 'ซุปไก่', 'อ่อนโยน'],
     color: '#F39C12',
     emoji: '🍗',
-    image: 'https://s66122202080-spec.github.io/ramen-app/jin.jpg',
-    imageFallback: 'https://s66122202080-spec.github.io/ramen-app/jin.jpg'
+    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/jin.jpg?raw=true',
+    imageFallback: 'https://github.com/s66122202080-spec/ramen-app/blob/main/jin.jpg?raw=true'
   },
   {
     id: 'kimchi',
