@@ -28,7 +28,7 @@ const RAMEN_MENU = [
     color: '#3D2B1F',
     emoji: '⚫',
     image: 'https://i.postimg.cc/SNBsnZcJ/jajang.jpg',
-    imageFallback: 'https://drive.google.com/uc?export=view&id=1Kw-gjN49mbmlySFZ5BG8k5hElm1t-9A2'
+    imageFallback: 'https://s66122202080-spec.github.io/ramen-app/jajang.jpg'
   },
   {
     id: 'nongshim',
