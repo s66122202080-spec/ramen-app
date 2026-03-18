@@ -234,16 +234,18 @@ body {
 
 .menu-card-img-wrap {
   position: relative;
-  height: 160px;
+  height: 180px;
   overflow: hidden;
-  background: var(--surface3);
+  background: #fff;
 }
 
 .menu-img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
   transition: transform 0.3s;
+  padding: 8px;
 }
 
 .menu-card:hover .menu-img { transform: scale(1.05); }
@@ -971,6 +973,30 @@ body {
   margin-top: -8px;
 }
 
+/* ===== TOAST NOTIFICATION ===== */
+.order-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 40px;
+  font-size: 15px;
+  font-weight: 700;
+  font-family: 'Noto Sans Thai', sans-serif;
+  box-shadow: 0 8px 32px rgba(232,69,69,0.5);
+  z-index: 9999;
+  transition: transform 0.35s cubic-bezier(0.34,1.56,0.64,1), opacity 0.35s;
+  opacity: 0;
+  white-space: nowrap;
+}
+.order-toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
 /* ===== DELETE ALL BUTTON ===== */
 .btn-delete-all {
   background: transparent;
@@ -988,6 +1014,29 @@ body {
 .btn-delete-all:hover {
   background: var(--accent);
   color: #fff;
+}
+
+/* ===== TOAST NOTIFICATION ===== */
+.order-toast {
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--accent);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  box-shadow: 0 8px 32px rgba(232,69,69,0.5);
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 9999;
+  white-space: nowrap;
+}
+.order-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ===== SCROLLBAR ===== */
