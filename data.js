@@ -42,8 +42,8 @@ const RAMEN_MENU = [
     tags: ['เผ็ดกลาง', 'ซุปเนื้อ', 'คลาสสิก'],
     color: '#C0392B',
     emoji: '🍖',
-    image: 'https://s66122202080-spec.github.io/ramen-app/nongshim.jpg',
-    imageFallback: 'https://s66122202080-spec.github.io/ramen-app/nongshim.jpg'
+    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/nongshim.jpg?raw=true',
+    imageFallback: 'https://github.com/s66122202080-spec/ramen-app/blob/main/nongshim.jpg?raw=true'
   },
   {
     id: 'yeol',
