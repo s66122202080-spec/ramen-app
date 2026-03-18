@@ -27,8 +27,8 @@ const RAMEN_MENU = [
     tags: ['ไม่เผ็ด', 'ซอสถั่วดำ', 'มันนัว'],
     color: '#3D2B1F',
     emoji: '⚫',
-    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/jajang.jpg?raw=true',
-    imageFallback: 'https://s66122202080-spec.github.io/ramen-app/jajang.jpg'
+    image: 'https://i.postimg.cc/SNBsnZcJ/jajang.jpg',
+    imageFallback: 'https://i.postimg.cc/SNBsnZcJ/jajang.jpg'
   },
   {
     id: 'nongshim',
@@ -57,7 +57,7 @@ const RAMEN_MENU = [
     tags: ['เผ็ดสุด!', 'ร้อนแรง', 'ท้าทาย'],
     color: '#E67E22',
     emoji: '🌶️',
-    image: 'https://github.com/s66122202080-spec/ramen-app/blob/main/yon.jpg?raw=true',
+    image: 'https://s66122202080-spec.github.io/ramen-app/yeol.jpg',
     imageFallback: 'https://s66122202080-spec.github.io/ramen-app/yeol.jpg'
   },
   {
