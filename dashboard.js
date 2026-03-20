@@ -3,30 +3,25 @@ let currentFilter = 'all';
 let refreshTimer = null;
 let lastOrderCount = -1;
 let soundEnabled = true;
-let activeAudioCtx = null;   // เพิ่ม: เก็บ context เสียงที่กำลังดัง
-let soundTimeouts = [];       // เพิ่ม: เก็บ timeout ที่กำลังรอ
+let activeAudioCtx = null;
+let soundTimeouts = [];
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   renderDashboard();
   startAutoRefresh();
-
-  // เพิ่ม: แตะ/คลิกที่ไหนก็ได้ → หยุดเสียงและสั่น
   document.addEventListener('touchstart', stopAlerts, { passive: true });
   document.addEventListener('click', stopAlerts);
 });
 
-// ===== เพิ่ม: หยุดเสียงและสั่นทันที =====
+// ===== หยุดเสียงและสั่นทันที =====
 function stopAlerts() {
-  // หยุด timeout ที่รออยู่ทั้งหมด
   soundTimeouts.forEach(t => clearTimeout(t));
   soundTimeouts = [];
-  // หยุดเสียง
   if (activeAudioCtx) {
     try { activeAudioCtx.close(); } catch(e) {}
     activeAudioCtx = null;
   }
-  // หยุดสั่น
   if (navigator.vibrate) navigator.vibrate(0);
 }
 
@@ -44,11 +39,9 @@ function switchTab(tab) {
 async function renderDashboard() {
   const orders = await dbGetOrders();
 
-  // เพิ่ม: เช็คออเดอร์ใหม่
   if (lastOrderCount >= 0 && orders.length > lastOrderCount) {
     const newCount = orders.length - lastOrderCount;
-    // เล่นเสียง + สั่น 1 ครั้งต่อ 1 ออเดอร์
-    stopAlerts(); // หยุดเสียงเก่าก่อน
+    stopAlerts();
     for (let i = 0; i < newCount; i++) {
       const t = setTimeout(() => {
         if (soundEnabled) {
@@ -60,9 +53,9 @@ async function renderDashboard() {
       }, i * 900);
       soundTimeouts.push(t);
     }
-    showToast(`🔔 มีออเดอร์ใหม่ ${newCount} รายการ!`);
+    showToast(`🔔 ออเดอร์ใหม่ ${newCount} รายการ!`);
   }
-  lastOrderCount = orders.length;
+  lastOrderCount = orders.length; // แก้ bug orders.shot → orders.length
 
   document.getElementById('order-count').textContent = orders.length;
   renderSummary(orders);
@@ -110,6 +103,7 @@ function filterOrders(f, btn) {
 
 // ===== ORDER LIST =====
 function renderOrdersList(orders, filter) {
+  // กรองตาม filter
   let filtered = filter === 'all' ? orders : orders.filter(o => o.status === filter);
   filtered = [...filtered].sort((a, b) => a.queue - b.queue);
 
@@ -119,10 +113,12 @@ function renderOrdersList(orders, filter) {
     return;
   }
 
-  el.innerHTML = filtered.map(order => {
+  el.innerHTML = filtered.map((order, index) => {
     const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
     const elapsed = getElapsed(order.created_at);
     const isDone = order.status === 'done';
+    // แสดงคิวเป็นตำแหน่งจริงในลิสต์ปัจจุบัน
+    const displayQueue = index + 1;
 
     const itemsHtml = items.map(item => `
       <div class="order-item ${item.status}">
@@ -136,7 +132,7 @@ function renderOrdersList(orders, filter) {
     return `
       <div class="order-card ${isDone ? 'done' : ''}">
         <div class="order-card-header">
-          <div class="order-queue" style="${isDone ? 'background:#2ecc71' : ''}">Q${order.queue}</div>
+          <div class="order-queue" style="${isDone ? 'background:#2ecc71' : ''}">Q${displayQueue}</div>
           <div class="order-main-info">
             <span class="order-name">👤 ${order.name}</span>
             <span class="order-table">🪑 โต๊ะ ${order.table}</span>
@@ -166,6 +162,10 @@ async function toggleItem(orderId, itemId) {
   if (!item) return;
   item.status = item.status === 'pending' ? 'done' : 'pending';
   const newStatus = items.every(i => i.status === 'done') ? 'done' : 'pending';
+  // ถ้าเสร็จทั้งหมด → บันทึกสถิติ
+  if (newStatus === 'done' && order.status !== 'done') {
+    await dbSaveToStats({ ...order, items: JSON.stringify(items) });
+  }
   await dbUpdateOrder(orderId, { items: JSON.stringify(items), status: newStatus });
   renderDashboard();
 }
@@ -177,6 +177,10 @@ async function toggleOrderDone(orderId, currentStatus) {
   if (!order) return;
   const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
   items.forEach(i => i.status = newStatus);
+  // ถ้ากดเสร็จ → บันทึกสถิติ
+  if (newStatus === 'done') {
+    await dbSaveToStats({ ...order, items: JSON.stringify(items) });
+  }
   await dbUpdateOrder(orderId, { status: newStatus, items: JSON.stringify(items) });
   renderDashboard();
 }
@@ -190,18 +194,18 @@ async function deleteOrder(orderId) {
 async function deleteAllOrders() {
   const orders = await dbGetOrders();
   if (orders.length === 0) { alert('ไม่มีออเดอร์ให้ลบ'); return; }
-  if (!confirm(`⚠️ ลบออเดอร์วันนี้ทั้งหมด ${orders.length} รายการ?\nกดตกลงเพื่อยืนยัน`)) return;
+  if (!confirm(`⚠️ ลบออเดอร์วันนี้ทั้งหมด ${orders.length} รายการ?\nสถิติจะยังคงอยู่ครับ`)) return;
   await dbDeleteAllToday();
   renderDashboard();
 }
 
-// ===== STATS =====
+// ===== STATS (อ่านจาก stats table แยกต่างหาก) =====
 async function renderStats() {
-  const all = await dbGetAllOrders();
+  const all = await dbGetStats();
   const el = document.getElementById('stats-body');
 
   if (all.length === 0) {
-    el.innerHTML = '<div class="no-orders" style="padding:60px">ยังไม่มีข้อมูล</div>';
+    el.innerHTML = '<div class="no-orders" style="padding:40px">ยังไม่มีข้อมูล (สถิติจะขึ้นเมื่อกดเสร็จออเดอร์)</div>';
     return;
   }
 
@@ -246,12 +250,24 @@ async function renderStats() {
       <div class="stat-day-card">
         <div class="stat-day-header">
           <span class="stat-date">${formatDateKey(key)}</span>
-          <span class="stat-totals">${orders.length} ออเดอร์ · ${totalPacks} ซอง</span>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span class="stat-totals">${orders.length} ออเดอร์ · ${totalPacks} ซอง</span>
+            <button onclick="deleteStatsByDate('${key}')"
+              style="background:transparent;color:#E84545;border:1px solid #E84545;border-radius:6px;padding:4px 10px;font-size:12px;font-family:'Noto Sans Thai',sans-serif;cursor:pointer;">
+              🗑 ลบวันนี้
+            </button>
+          </div>
         </div>
         <div class="stat-bars">${barsHtml}</div>
       </div>
     `;
   }).join('');
+}
+
+async function deleteStatsByDate(date) {
+  if (!confirm(`ลบสถิติวันที่ ${date}?`)) return;
+  await dbDeleteStatsByDate(date);
+  renderStats();
 }
 
 // ===== AUTO REFRESH =====
@@ -287,14 +303,13 @@ function formatDateKey(key) {
     : `📅 ${d} ${months[parseInt(m)]} ${parseInt(y)+543}`;
 }
 
-// ===== เพิ่ม: เสียงแจ้งเตือน =====
+// ===== เสียงแจ้งเตือน =====
 function playNotificationSound() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    activeAudioCtx = ctx; // เก็บไว้เพื่อหยุดได้
+    activeAudioCtx = ctx;
     const now = ctx.currentTime;
 
-    // compressor ทำให้เสียงดังและชัดขึ้นมาก
     const compressor = ctx.createDynamicsCompressor();
     compressor.threshold.value = -10;
     compressor.knee.value = 0;
@@ -303,10 +318,8 @@ function playNotificationSound() {
     compressor.release.value = 0.1;
     compressor.connect(ctx.destination);
 
-    // ดังซ้ำทุก 0.8 วินาที รวม 7 วินาที = ~8 ครั้ง
     const times = [0, 0.8, 1.6, 2.4, 3.2, 4.0, 4.8, 5.6, 6.4];
     times.forEach(t => {
-      // เสียงกลองโหด
       const bufferSize = ctx.sampleRate * 0.4;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
@@ -322,7 +335,6 @@ function playNotificationSound() {
       noiseGain.connect(compressor);
       noise.start(now + t);
 
-      // เสียงต่ำหนัก
       const osc1 = ctx.createOscillator();
       const gain1 = ctx.createGain();
       osc1.type = 'sawtooth';
@@ -335,7 +347,6 @@ function playNotificationSound() {
       osc1.start(now + t);
       osc1.stop(now + t + 0.4);
 
-      // เสียง ping แหลม
       const osc2 = ctx.createOscillator();
       const gain2 = ctx.createGain();
       osc2.type = 'square';
@@ -348,11 +359,10 @@ function playNotificationSound() {
       osc2.start(now + t + 0.05);
       osc2.stop(now + t + 0.35);
     });
-
   } catch(e) {}
 }
 
-// ===== เพิ่ม: toast แจ้งเตือน =====
+// ===== toast แจ้งเตือน =====
 function showToast(msg) {
   const existing = document.getElementById('order-toast');
   if (existing) existing.remove();
@@ -368,7 +378,7 @@ function showToast(msg) {
   }, 3500);
 }
 
-// ===== เพิ่ม: toggle เสียง =====
+// ===== toggle เสียง =====
 function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('btn-sound');
