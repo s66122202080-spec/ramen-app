@@ -62,6 +62,16 @@ async function dbDeleteAllToday() {
   });
 }
 
+async function dbDeleteByDate(date) {
+  await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${date}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+}
+
 async function dbGetAllOrders() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=date.desc,queue.asc`, {
     headers: {
@@ -115,7 +125,7 @@ async function dbSaveToStats(order) {
   });
 }
 
-// ===== เพิ่ม: ดึงสถิติทั้งหมด =====
+// ===== เพิ่ม: ดึงสถิติทั้งหมดจากตาราง stats =====
 async function dbGetStats() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/stats?order=date.desc,queue.asc`, {
     headers: {
@@ -127,7 +137,7 @@ async function dbGetStats() {
   return await res.json();
 }
 
-// ===== เพิ่ม: ลบสถิติแต่ละวัน =====
+// ===== เพิ่ม: ลบสถิติแต่ละวันจากตาราง stats =====
 async function dbDeleteStatsByDate(date) {
   await fetch(`${SUPABASE_URL}/rest/v1/stats?date=eq.${date}`, {
     method: 'DELETE',
@@ -136,29 +146,4 @@ async function dbDeleteStatsByDate(date) {
       'Authorization': `Bearer ${SUPABASE_KEY}`
     }
   });
-}
-
-// ===== เพิ่ม: ลบสถิติแต่ละวัน =====
-async function dbDeleteStatsByDate(date) {
-  await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${date}`, {
-    method: 'DELETE',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
-    }
-  });
-}
-
-// ===== เพิ่ม: ดึง queue สูงสุดของ pending วันนี้ =====
-async function dbGetMaxPendingQueue() {
-  const today = getTodayKey();
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${today}&status=eq.pending&select=queue&order=queue.desc&limit=1`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
-    }
-  });
-  if (!res.ok) return 0;
-  const data = await res.json();
-  return data.length > 0 ? data[0].queue : 0;
 }
