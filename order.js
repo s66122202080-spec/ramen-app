@@ -4,9 +4,30 @@ let cart = {};
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   buildTableSelect();
+  lockTableFromURL();
   buildMenuGrid();
   renderCart();
 });
+
+// ===== ล็อคโต๊ะจาก URL ?table=1 =====
+function lockTableFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const tableNum = params.get('table');
+  if (tableNum) {
+    const sel = document.getElementById('table-select');
+    sel.value = tableNum;
+    sel.disabled = true;
+    sel.style.opacity = '0.7';
+    sel.style.cursor = 'not-allowed';
+    const group = sel.closest('.form-group');
+    if (group) {
+      const lockBadge = document.createElement('span');
+      lockBadge.textContent = ` 🔒 โต๊ะ ${tableNum}`;
+      lockBadge.style.cssText = 'color:#E84545;font-size:13px;font-weight:700;margin-left:6px;';
+      group.querySelector('label').appendChild(lockBadge);
+    }
+  }
+}
 
 // ===== TABLE SELECT =====
 function buildTableSelect() {
@@ -138,12 +159,25 @@ async function submitOrder() {
       <div class="modal-info-row"><span>🪑 โต๊ะ</span><strong>โต๊ะ ${table}</strong></div>
       <div class="modal-info-row items-col"><span>🍜 เมนู</span><strong>${itemText}</strong></div>
     `;
-    document.getElementById('modal-queue').textContent = queueNum;
+
+    // Step 1: รอคิว
+    document.getElementById('modal-emoji').textContent = '⏳';
+    document.getElementById('modal-title').textContent = 'กำลังส่งออเดอร์...';
+    document.getElementById('modal-hint').textContent = 'กรุณารอสักครู่...';
     document.getElementById('modal-success').classList.remove('hidden');
+
+    // Step 2: รับออเดอร์เรียบร้อย หลัง 1.2 วินาที
+    setTimeout(() => {
+      document.getElementById('modal-emoji').textContent = '✅';
+      document.getElementById('modal-title').textContent = 'พนักงานรับออเดอร์เรียบร้อย!';
+      document.getElementById('modal-hint').textContent = 'รอสักครู่นะครับ/ค่ะ 🍜';
+    }, 1200);
 
     cart = {};
     document.getElementById('customer-name').value = '';
-    document.getElementById('table-select').value = '';
+    if (!document.getElementById('table-select').disabled) {
+      document.getElementById('table-select').value = '';
+    }
     buildMenuGrid();
     renderCart();
   } catch(e) {
