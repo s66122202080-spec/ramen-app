@@ -63,18 +63,14 @@
 
     </div>
 
-    <!-- MODAL: SUCCESS -->
+    <!-- MODAL: SUCCESS — ไม่แสดงคิวให้ลูกค้า -->
     <div id="modal-success" class="modal hidden">
       <div class="modal-overlay"></div>
       <div class="modal-box">
-        <div class="modal-emoji">🎉</div>
-        <h2>ส่งออเดอร์แล้ว!</h2>
+        <div class="modal-emoji" id="modal-emoji">⏳</div>
+        <h2 id="modal-title">กำลังส่งออเดอร์...</h2>
         <div id="modal-detail"></div>
-        <div class="queue-display">
-          <span>คิวของคุณ</span>
-          <span id="modal-queue" class="queue-num">—</span>
-        </div>
-        <p class="queue-hint">รอเรียกชื่อจากพนักงานได้เลยครับ/ค่ะ 😊</p>
+        <p class="queue-hint" id="modal-hint">กรุณารอสักครู่...</p>
         <button class="btn-submit" onclick="closeModal()">✓ รับทราบ / สั่งใหม่</button>
       </div>
     </div>
