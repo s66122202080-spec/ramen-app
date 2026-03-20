@@ -114,13 +114,10 @@ async function dbSaveToStats(order) {
     },
     body: JSON.stringify({
       date: order.date,
-      name: order.name,
-      table: order.table,
+      order_name: order.name,
+      table_num: order.table,
       items: typeof order.items === 'string' ? order.items : JSON.stringify(order.items),
-      status: 'done',
-      queue: order.queue,
-      created_at: order.created_at,
-      done_at: new Date().toISOString()
+      completed_at: new Date().toISOString()
     })
   });
 }
