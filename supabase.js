@@ -62,17 +62,6 @@ async function dbDeleteAllToday() {
   });
 }
 
-// เพิ่ม: ลบสถิติแต่ละวัน (ลบทุก order ของวันนั้น)
-async function dbDeleteByDate(date) {
-  await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${date}`, {
-    method: 'DELETE',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
-    }
-  });
-}
-
 async function dbGetAllOrders() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=date.desc,queue.asc`, {
     headers: {
@@ -101,4 +90,75 @@ async function dbGetTodayQueueCount() {
 function getTodayKey() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ===== เพิ่ม: บันทึกสถิติเมื่อกดเสร็จ =====
+async function dbSaveToStats(order) {
+  await fetch(`${SUPABASE_URL}/rest/v1/stats`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    },
+    body: JSON.stringify({
+      date: order.date,
+      name: order.name,
+      table: order.table,
+      items: typeof order.items === 'string' ? order.items : JSON.stringify(order.items),
+      status: 'done',
+      queue: order.queue,
+      created_at: order.created_at,
+      done_at: new Date().toISOString()
+    })
+  });
+}
+
+// ===== เพิ่ม: ดึงสถิติทั้งหมด =====
+async function dbGetStats() {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/stats?order=date.desc,queue.asc`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  if (!res.ok) return [];
+  return await res.json();
+}
+
+// ===== เพิ่ม: ลบสถิติแต่ละวัน =====
+async function dbDeleteStatsByDate(date) {
+  await fetch(`${SUPABASE_URL}/rest/v1/stats?date=eq.${date}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+}
+
+// ===== เพิ่ม: ลบสถิติแต่ละวัน =====
+async function dbDeleteStatsByDate(date) {
+  await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${date}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+}
+
+// ===== เพิ่ม: ดึง queue สูงสุดของ pending วันนี้ =====
+async function dbGetMaxPendingQueue() {
+  const today = getTodayKey();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${today}&status=eq.pending&select=queue&order=queue.desc&limit=1`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+  if (!res.ok) return 0;
+  const data = await res.json();
+  return data.length > 0 ? data[0].queue : 0;
 }
