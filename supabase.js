@@ -62,6 +62,17 @@ async function dbDeleteAllToday() {
   });
 }
 
+// เพิ่ม: ลบสถิติแต่ละวัน (ลบทุก order ของวันนั้น)
+async function dbDeleteByDate(date) {
+  await fetch(`${SUPABASE_URL}/rest/v1/orders?date=eq.${date}`, {
+    method: 'DELETE',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`
+    }
+  });
+}
+
 async function dbGetAllOrders() {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/orders?order=date.desc,queue.asc`, {
     headers: {
