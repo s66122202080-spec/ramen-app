@@ -2,7 +2,7 @@
 const RAMEN_MENU = [
   {
     id: 'samyang',
-    name: 'ซัมยัง samyang',
+    name: 'ซัมยัง',
     nameKr: '삼양',
     nameFull: 'Samyang Buldak Bokkeummyeon',
     brand: 'Samyang',
