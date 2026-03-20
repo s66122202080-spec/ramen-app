@@ -124,7 +124,7 @@ async function dbSaveToStats(order) {
 
 // ===== เพิ่ม: ดึงสถิติทั้งหมดจากตาราง stats =====
 async function dbGetStats() {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/stats?order=date.desc,queue.asc`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/stats?order=date.desc,completed_at.asc`, {
     headers: {
       'apikey': SUPABASE_KEY,
       'Authorization': `Bearer ${SUPABASE_KEY}`
