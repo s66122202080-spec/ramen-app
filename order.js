@@ -44,9 +44,12 @@ function buildTableSelect() {
 function buildMenuGrid() {
   const grid = document.getElementById('menu-grid');
   grid.innerHTML = '';
+  // โหลด soldOut จาก localStorage
+  const soldOutMap = JSON.parse(localStorage.getItem('soldOutMap') || '{}');
   RAMEN_MENU.forEach(item => {
+    const isSoldOut = soldOutMap[item.id] || false;
     const card = document.createElement('div');
-    card.className = 'menu-card';
+    card.className = 'menu-card' + (isSoldOut ? ' sold-out-card' : '');
     card.style.setProperty('--accent', item.color);
     const spice = getSpiceDisplay(item.spiceLevel);
     const qty = cart[item.id] || 0;
@@ -56,6 +59,7 @@ function buildMenuGrid() {
           onerror="this.src='${item.imageFallback}'; this.onerror=null;">
         <button class="info-btn" onclick="showInfo('${item.id}')">ℹ</button>
         <div class="menu-badge-kr">${item.nameKr}</div>
+        ${isSoldOut ? '<div class="sold-out-badge">หมด</div>' : ''}
       </div>
       <div class="menu-card-body">
         <div class="menu-name-row">
@@ -68,9 +72,9 @@ function buildMenuGrid() {
           ${spice.flames} <span class="spice-label">${spice.label}</span>
         </div>
         <div class="qty-row">
-          <button class="qty-btn minus" onclick="changeQty('${item.id}',-1)" ${qty===0?'disabled':''}>−</button>
-          <span class="qty-num" id="qty-${item.id}">${qty}</span>
-          <button class="qty-btn plus" onclick="changeQty('${item.id}',1)">+</button>
+          <button class="qty-btn minus" onclick="changeQty('${item.id}',-1)" ${qty===0||isSoldOut?'disabled':''}>−</button>
+          <span class="qty-num" id="qty-${item.id}">${isSoldOut ? '—' : qty}</span>
+          <button class="qty-btn plus" onclick="changeQty('${item.id}',1)" ${isSoldOut?'disabled':''}>+</button>
         </div>
       </div>
     `;
@@ -141,12 +145,15 @@ async function submitOrder() {
       return { id, name: item.name, nameKr: item.nameKr, emoji: item.emoji, qty, status: 'pending' };
     });
 
+  const note = document.getElementById('order-note')?.value.trim() || '';
+
     const order = {
       queue: queueNum,
       name,
       table: parseInt(table),
       items: JSON.stringify(items),
       status: 'pending',
+      note,
       date: getTodayKey(),
       created_at: new Date().toISOString()
     };
@@ -178,6 +185,8 @@ async function submitOrder() {
     if (!document.getElementById('table-select').disabled) {
       document.getElementById('table-select').value = '';
     }
+    const noteEl = document.getElementById('order-note');
+    if (noteEl) noteEl.value = '';
     buildMenuGrid();
     renderCart();
   } catch(e) {
