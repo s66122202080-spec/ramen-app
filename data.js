@@ -2,6 +2,7 @@
 const RAMEN_MENU = [
   {
     id: 'samyang',
+    soldOut: false,
     name: 'ซัมยัง',
     nameKr: '삼양',
     nameFull: 'Samyang Buldak Bokkeummyeon',
@@ -17,6 +18,7 @@ const RAMEN_MENU = [
   },
   {
     id: 'jjajang',
+    soldOut: false,
     name: 'จาจัง',
     nameKr: '짜장',
     nameFull: 'Jjajangmyeon',
@@ -32,6 +34,7 @@ const RAMEN_MENU = [
   },
   {
     id: 'nongshim',
+    soldOut: false,
     name: 'นงชิม',
     nameKr: '농심',
     nameFull: 'Nongshim Shin Ramyun',
@@ -47,6 +50,7 @@ const RAMEN_MENU = [
   },
   {
     id: 'yeol',
+    soldOut: false,
     name: 'ยอล',
     nameKr: '열라면',
     nameFull: 'Yeul',
@@ -62,6 +66,7 @@ const RAMEN_MENU = [
   },
   {
     id: 'jin',
+    soldOut: false,
     name: 'จิน',
     nameKr: '진라면',
     nameFull: 'Jin',
@@ -77,6 +82,7 @@ const RAMEN_MENU = [
   },
   {
     id: 'kimchi',
+    soldOut: false,
     name: 'กิมจิ',
     nameKr: '김치라면',
     nameFull: 'Kimchi',
