@@ -6,6 +6,55 @@
   <title>🍜 สั่งรามยอน</title>
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;600;700;900&family=Black+Han+Sans&display=swap" rel="stylesheet">
+  <style>
+    /* soldOut badge */
+    .sold-out-badge {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      padding: 8px 20px;
+      border-radius: 8px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .sold-out-card {
+      opacity: 0.5;
+      filter: grayscale(0.6);
+    }
+    /* note textarea */
+    .note-wrap {
+      margin-top: 12px;
+    }
+    .note-wrap label {
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .note-wrap textarea {
+      width: 100%;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Noto Sans Thai', sans-serif;
+      font-size: 14px;
+      padding: 10px 14px;
+      resize: none;
+      box-sizing: border-box;
+    }
+    .note-wrap textarea:focus {
+      outline: none;
+      border-color: #E84545;
+    }
+  </style>
 </head>
 <body class="order-page">
   <div id="app">
@@ -56,6 +105,11 @@
         <div id="cart-items">
           <div class="empty-cart">🛒 ยังไม่ได้เลือกเมนู</div>
         </div>
+        <!-- เพิ่ม: หมายเหตุพิเศษ -->
+        <div class="note-wrap">
+          <label>📝 หมายเหตุพิเศษ (ถ้ามี) เช่น ไม่ใส่ซอส, เพิ่มความเผ็ด</label>
+          <textarea id="order-note" rows="2" placeholder="พิมพ์หมายเหตุที่นี่..."></textarea>
+        </div>
         <button class="btn-submit" id="btn-submit" onclick="submitOrder()" disabled>
           🔥 ส่งออเดอร์
         </button>
@@ -63,7 +117,7 @@
 
     </div>
 
-    <!-- MODAL: SUCCESS — ไม่แสดงคิวให้ลูกค้า -->
+    <!-- MODAL: SUCCESS -->
     <div id="modal-success" class="modal hidden">
       <div class="modal-overlay"></div>
       <div class="modal-box">
