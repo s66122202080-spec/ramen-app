@@ -33,6 +33,8 @@ function switchTab(tab) {
   document.getElementById(`htab-${tab}`).classList.add('active');
   if (tab === 'stats') renderStats();
   if (tab === 'orders') renderDashboard();
+  if (tab === 'tables') renderTableStats();
+  if (tab === 'menu') renderMenuManage();
 }
 
 // ===== DASHBOARD =====
@@ -146,6 +148,7 @@ function renderOrdersList(orders, filter) {
             <button class="btn-delete" onclick="deleteOrder(${order.id})">🗑</button>
           </div>
         </div>
+        ${order.note ? `<div style="padding:6px 14px 0;font-family:'Noto Sans Thai',sans-serif;font-size:13px;color:#f39c12;">📝 ${order.note}</div>` : ''}
         <div class="order-items">${itemsHtml}</div>
       </div>
     `;
@@ -383,4 +386,121 @@ function toggleSound() {
   soundEnabled = !soundEnabled;
   const btn = document.getElementById('btn-sound');
   if (btn) btn.textContent = soundEnabled ? '🔔 เสียงเปิด' : '🔕 เสียงปิด';
+}
+
+// ===== เพิ่ม: จัดการเมนูหมด/งดจำหน่าย =====
+function renderMenuManage() {
+  const soldOutMap = JSON.parse(localStorage.getItem('soldOutMap') || '{}');
+  const el = document.getElementById('menu-manage-list');
+  el.innerHTML = RAMEN_MENU.map(item => {
+    const isSoldOut = soldOutMap[item.id] || false;
+    return `
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:28px;">${item.emoji}</span>
+          <div>
+            <div style="font-family:'Noto Sans Thai',sans-serif;font-weight:700;color:#fff;">${item.name}</div>
+            <div style="font-family:'Noto Sans Thai',sans-serif;font-size:12px;color:#888;">${item.flavor}</div>
+          </div>
+        </div>
+        <button onclick="toggleSoldOut('${item.id}')"
+          style="background:${isSoldOut ? '#E84545' : '#2ecc71'};color:#fff;border:none;border-radius:8px;padding:8px 18px;font-family:'Noto Sans Thai',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">
+          ${isSoldOut ? '🔴 หมด/งด' : '🟢 มีขาย'}
+        </button>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleSoldOut(id) {
+  const soldOutMap = JSON.parse(localStorage.getItem('soldOutMap') || '{}');
+  soldOutMap[id] = !soldOutMap[id];
+  localStorage.setItem('soldOutMap', JSON.stringify(soldOutMap));
+  renderMenuManage();
+}
+
+// ===== เพิ่ม: สถิติรายโต๊ะ =====
+async function renderTableStats() {
+  const all = await dbGetStats();
+  const el = document.getElementById('table-stats-body');
+  if (!el) return;
+
+  if (all.length === 0) {
+    el.innerHTML = '<div class="no-orders" style="padding:40px">ยังไม่มีข้อมูล</div>';
+    return;
+  }
+
+  // populate date filter
+  const dateFilter = document.getElementById('date-filter');
+  const tableFilter = document.getElementById('table-filter');
+  const allDates = [...new Set(all.map(o => o.date))].sort().reverse();
+  const allTables = [...new Set(all.map(o => o.table_num))].filter(Boolean).sort((a,b) => a-b);
+
+  // เพิ่ม option ถ้ายังไม่มี
+  if (dateFilter.options.length <= 1) {
+    allDates.forEach(d => {
+      const opt = document.createElement('option');
+      opt.value = d;
+      opt.textContent = d === getTodayKey() ? `วันนี้ (${d})` : d;
+      dateFilter.appendChild(opt);
+    });
+  }
+  if (tableFilter.options.length <= 1) {
+    allTables.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = `โต๊ะ ${t}`;
+      tableFilter.appendChild(opt);
+    });
+  }
+
+  const selectedDate = dateFilter.value;
+  const selectedTable = tableFilter.value;
+
+  let filtered = all;
+  if (selectedDate !== 'all') filtered = filtered.filter(o => o.date === selectedDate);
+  if (selectedTable !== 'all') filtered = filtered.filter(o => String(o.table_num) === String(selectedTable));
+
+  if (filtered.length === 0) {
+    el.innerHTML = '<div class="no-orders" style="padding:40px">ไม่มีข้อมูลในช่วงที่เลือก</div>';
+    return;
+  }
+
+  // จัดกลุ่มตามโต๊ะ
+  const byTable = {};
+  filtered.forEach(o => {
+    const t = o.table_num || '?';
+    if (!byTable[t]) byTable[t] = [];
+    byTable[t].push(o);
+  });
+
+  const tableKeys = Object.keys(byTable).sort((a,b) => parseInt(a)-parseInt(b));
+
+  el.innerHTML = tableKeys.map(tNum => {
+    const orders = byTable[tNum];
+    const typeCounts = {};
+    let totalPacks = 0;
+    orders.forEach(o => {
+      const items = typeof o.items === 'string' ? JSON.parse(o.items) : o.items;
+      items.forEach(i => {
+        typeCounts[i.name] = (typeCounts[i.name] || 0) + i.qty;
+        totalPacks += i.qty;
+      });
+    });
+    const sorted = Object.entries(typeCounts).sort((a,b) => b[1]-a[1]);
+    const itemsHtml = sorted.map(([name, cnt]) => {
+      const item = RAMEN_MENU.find(r => r.name === name);
+      return `<span style="display:inline-block;background:#2a2a2a;border-radius:6px;padding:4px 10px;font-family:'Noto Sans Thai',sans-serif;font-size:13px;margin:3px;">${item?.emoji || '🍜'} ${name} × ${cnt}</span>`;
+    }).join('');
+
+    return `
+      <div style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:14px;padding:16px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <span style="font-family:'Black Han Sans',sans-serif;font-size:18px;color:#E84545;">🪑 โต๊ะ ${tNum}</span>
+          <span style="font-family:'Noto Sans Thai',sans-serif;font-size:13px;color:#888;">${orders.length} ออเดอร์ · ${totalPacks} ซอง</span>
+        </div>
+        <div>${itemsHtml}</div>
+      </div>
+    `;
+  }).join('');
 }
