@@ -107,6 +107,8 @@
         <div class="header-tabs">
           <button class="htab active" id="htab-orders" onclick="switchTab('orders')">📋 ออเดอร์</button>
           <button class="htab" id="htab-stats" onclick="switchTab('stats')">📈 สถิติ</button>
+          <button class="htab" id="htab-tables" onclick="switchTab('tables')">🪑 โต๊ะ</button>
+          <button class="htab" id="htab-menu" onclick="switchTab('menu')">🍜 จัดการเมนู</button>
           <button class="htab" id="btn-sound" onclick="toggleSound()">🔔 เสียงเปิด</button>
         </div>
       </div>
@@ -141,6 +143,37 @@
     <!-- TAB: STATS -->
     <div id="tab-stats" class="tab-content">
       <div class="stats-body" id="stats-body"></div>
+    </div>
+
+    <!-- TAB: TABLES -->
+    <div id="tab-tables" class="tab-content">
+      <div class="dash-body">
+        <div class="orders-toolbar">
+          <h2>สถิติรายโต๊ะ</h2>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:8px;flex-wrap:wrap;">
+            <select id="table-filter" onchange="renderTableStats()"
+              style="background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px;padding:8px 14px;font-family:'Noto Sans Thai',sans-serif;font-size:14px;">
+              <option value="all">ทุกโต๊ะ</option>
+            </select>
+            <select id="date-filter" onchange="renderTableStats()"
+              style="background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px;padding:8px 14px;font-family:'Noto Sans Thai',sans-serif;font-size:14px;">
+              <option value="all">ทุกวัน</option>
+            </select>
+          </div>
+        </div>
+        <div id="table-stats-body"></div>
+      </div>
+    </div>
+
+    <!-- TAB: MENU MANAGEMENT -->
+    <div id="tab-menu" class="tab-content">
+      <div class="dash-body">
+        <div class="orders-toolbar">
+          <h2>จัดการเมนู</h2>
+          <p style="font-family:'Noto Sans Thai',sans-serif;font-size:13px;color:#888;margin-top:4px;">กดปิดเมนูที่หมดหรืองดจำหน่ายวันนี้</p>
+        </div>
+        <div id="menu-manage-list"></div>
+      </div>
     </div>
 
   </div>
